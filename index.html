@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Online Info Device</title>
+  <meta name="description" content="Searches many free public sources at once and summarizes what it finds.">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Info Device">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <h1>Online Info Device</h1>
+      <p class="muted">Searches free public sources across the web and summarizes what it finds.</p>
+    </header>
+
+    <form id="search-form" autocomplete="off">
+      <label for="q" class="sr-only">What do you want to know?</label>
+      <input id="q" name="q" type="search" placeholder="What do you want to know?" required enterkeyhint="search">
+
+      <fieldset class="effort">
+        <legend>Effort</legend>
+        <label><input type="radio" name="effort" value="low"><span>Low</span></label>
+        <label><input type="radio" name="effort" value="medium" checked><span>Medium</span></label>
+        <label><input type="radio" name="effort" value="high"><span>High</span></label>
+      </fieldset>
+      <p id="effort-desc" class="muted small"></p>
+
+      <div class="row">
+        <button type="submit" id="go">Search</button>
+        <button type="button" id="stop" class="secondary" hidden>Stop</button>
+      </div>
+    </form>
+
+    <section id="progress" hidden>
+      <div class="bar"><div id="bar-fill"></div></div>
+      <p id="status" class="small"></p>
+      <details>
+        <summary class="small">Show log</summary>
+        <ol id="log" class="log small"></ol>
+      </details>
+    </section>
+
+    <section id="results" hidden>
+      <p id="stats" class="muted small"></p>
+
+      <article class="card">
+        <div class="card-head">
+          <h2>Summary</h2>
+          <button type="button" class="link" data-copy="summary">Copy</button>
+        </div>
+        <div id="summary" class="prose"></div>
+      </article>
+
+      <article class="card" id="report-card" hidden>
+        <div class="card-head">
+          <h2>Full report</h2>
+          <button type="button" class="link" data-copy="report">Copy</button>
+        </div>
+        <div id="report" class="prose"></div>
+      </article>
+
+      <article class="card" id="terms-card" hidden>
+        <h2>Key terms</h2>
+        <p class="muted small">Tap a term to search for it.</p>
+        <div id="terms" class="chips"></div>
+      </article>
+
+      <article class="card">
+        <h2>Sources <span id="source-count" class="muted"></span></h2>
+        <ol id="sources" class="sources"></ol>
+      </article>
+    </section>
+
+    <section id="history-wrap" hidden>
+      <div class="card-head">
+        <h2>Recent searches</h2>
+        <button type="button" class="link" id="clear-history">Clear</button>
+      </div>
+      <ul id="history" class="history"></ul>
+    </section>
+
+    <footer class="muted small">
+      Free sources only, no keys: Wikipedia, Wikidata, DuckDuckGo, Bing, Mojeek, Google News, Hacker News,
+      Stack Exchange, Reddit, Crossref, Open Library, GitHub and arXiv, plus public page readers and CORS proxies.
+      Some may be slow, rate-limited or blocked now and then; the device skips those and keeps going.
+      Summaries are built from sentences on the pages it finds, so check the sources for anything important.
+    </footer>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
