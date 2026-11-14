@@ -12,8 +12,7 @@ export const EFFORT = {
     queryVariants: 1,
     readPages: 0,           // no full-page reading
     wikiFullText: 0,
-    summarySentences: 4,
-    longReport: false,
+    defaultLength: 'short',
     concurrency: 4,
   },
   medium: {
@@ -26,13 +25,12 @@ export const EFFORT = {
     queryVariants: 1,
     readPages: 8,
     wikiFullText: 1,
-    summarySentences: 7,
-    longReport: false,
+    defaultLength: 'medium',
     concurrency: 6,
   },
   high: {
     label: 'High',
-    description: 'Searches everywhere it can, as hard as it can: every source, three search engines, several query variations, and reads as many pages as possible. Long report plus summary. About 1–3 minutes.',
+    description: 'Searches everywhere it can, as hard as it can: every source, three search engines, several query variations, and reads as many pages as possible. About 1–3 minutes.',
     sources: ['wikipedia', 'ddg', 'web', 'news', 'wikidata', 'hackernews', 'stackexchange',
       'reddit', 'crossref', 'openlibrary', 'github', 'arxiv'],
     wikiLangs: ['en', 'no'],
@@ -41,10 +39,16 @@ export const EFFORT = {
     queryVariants: 4,
     readPages: 30,
     wikiFullText: 3,
-    summarySentences: 10,
-    longReport: true,
+    defaultLength: 'long',
     concurrency: 8,
   },
+};
+
+// How much text comes back. Independent of effort (which decides how hard it searches).
+export const LENGTH = {
+  short: { label: 'Short', sentences: 3, report: false },
+  medium: { label: 'Medium', sentences: 7, report: false },
+  long: { label: 'Long', sentences: 12, report: true },
 };
 
 // Extra phrasings used for web and news searches on higher effort levels.
