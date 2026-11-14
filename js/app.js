@@ -1,6 +1,7 @@
 // Wires the page together: form, effort picker, progress, results, history.
 
-import { EFFORT } from './config.js';
+import { EFFORT, LENGTH } from './config.js';
+import { IMAGE_ENGINES, reverseImageLinks } from './imageSearch.js';
 import { runSearch } from './search.js';
 import * as ui from './ui.js';
 
@@ -17,14 +18,35 @@ function currentEffort() {
   return document.querySelector('input[name="effort"]:checked')?.value || 'medium';
 }
 
-function setEffort(value) {
+let lengthTouched = false;   // once the user picks a length, effort stops choosing it
+
+function currentLength() {
+  return document.querySelector('input[name="length"]:checked')?.value || 'medium';
+}
+
+const LENGTH_TEXT = {
+  short: 'A few sentences.',
+  medium: 'A paragraph with the main points.',
+  long: 'A long report in sections, plus the summary.',
+};
+
+function setLength(value) {
+  const input = document.querySelector(`input[name="length"][value="${value}"]`);
+  if (input) input.checked = true;
+  $('length-desc').textContent = LENGTH_TEXT[currentLength()];
+}
+
+function setEffort(value, { keepLength = false } = {}) {
   const input = document.querySelector(`input[name="effort"][value="${value}"]`);
   if (input) input.checked = true;
   $('effort-desc').textContent = EFFORT[currentEffort()].description;
+  if (!keepLength && !lengthTouched) setLength(EFFORT[currentEffort()].defaultLength);
 }
 
 document.querySelectorAll('input[name="effort"]').forEach(input =>
   input.addEventListener('change', () => setEffort(input.value)));
+document.querySelectorAll('input[name="length"]').forEach(input =>
+  input.addEventListener('change', () => { lengthTouched = true; setLength(input.value); }));
 
 // ---------- History (stored on this phone only) ----------
 
@@ -36,9 +58,9 @@ function saveHistory(list) {
   try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch { /* storage unavailable */ }
 }
 
-function addToHistory(query, effort) {
-  const list = loadHistory().filter(h => !(h.q === query && h.effort === effort));
-  list.unshift({ q: query, effort, t: Date.now() });
+function addToHistory(query, effort, length) {
+  const list = loadHistory().filter(h => !(h.q === query && h.effort === effort && h.length === length));
+  list.unshift({ q: query, effort, length, t: Date.now() });
   saveHistory(list.slice(0, 15));
   renderHistory();
 }
@@ -54,9 +76,9 @@ function renderHistory() {
     q.textContent = h.q;
     const meta = document.createElement('span');
     meta.className = 'muted small';
-    meta.textContent = EFFORT[h.effort]?.label || h.effort;
+    meta.textContent = `${EFFORT[h.effort]?.label || h.effort} · ${LENGTH[h.length]?.label || ''}`.replace(/ · $/, '');
     btn.append(q, meta);
-    btn.addEventListener('click', () => startSearch(h.q, h.effort));
+    btn.addEventListener('click', () => { lengthTouched = true; setLength(h.length || currentLength()); startSearch(h.q, h.effort, h.length); });
     li.append(btn);
     return li;
   }));
@@ -81,19 +103,21 @@ function setBusy(busy) {
   $('go').disabled = busy;
   $('go').textContent = busy ? 'Searching…' : 'Search';
   $('stop').hidden = !busy;
-  document.querySelectorAll('input[name="effort"]').forEach(i => { i.disabled = busy; });
+  document.querySelectorAll('input[name="effort"], input[name="length"]').forEach(i => { i.disabled = busy; });
 }
 
-async function startSearch(query, effort) {
+async function startSearch(query, effort, length = currentLength()) {
   query = query.trim();
   if (!query) return;
   if (controller) controller.abort();
 
   $('q').value = query;
-  setEffort(effort);
+  setEffort(effort, { keepLength: true });
+  setLength(length);
   const url = new URL(location.href);
   url.searchParams.set('q', query);
   url.searchParams.set('effort', effort);
+  url.searchParams.set('length', length);
   history.replaceState(null, '', url);
 
   controller = new AbortController();
@@ -106,7 +130,7 @@ async function startSearch(query, effort) {
   $('bar-fill').style.width = '0%';
 
   try {
-    const result = await runSearch(query, effort, {
+    const result = await runSearch(query, effort, length, {
       signal,
       onLog: (text, ok) => ui.logLine($('log'), text, ok),
       onProgress: (fraction, status) => {
@@ -116,7 +140,7 @@ async function startSearch(query, effort) {
     });
     lastResult = result;
     showResults(result);
-    addToHistory(query, effort);
+    addToHistory(query, effort, length);
     $('progress').hidden = true;
   } catch (err) {
     $('status').textContent = signal.aborted ? 'Stopped.' : `Something went wrong: ${err.message}`;
@@ -128,7 +152,9 @@ async function startSearch(query, effort) {
 }
 
 function showResults(result) {
-  ui.renderStats($('stats'), result.stats, EFFORT[result.effort].label);
+  ui.renderStats($('stats'), result.stats, `${EFFORT[result.effort].label} effort, ${LENGTH[result.length].label.toLowerCase()} summary`);
+  ui.renderNotice($('notice'), result.notice);
+  ui.renderQuick($('quick'), result.quickAnswer);
   ui.renderSummary($('summary'), result.summary);
 
   $('report-card').hidden = !result.report;
@@ -167,5 +193,24 @@ document.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('cl
 
 const params = new URLSearchParams(location.search);
 setEffort(EFFORT[params.get('effort')] ? params.get('effort') : 'medium');
+if (LENGTH[params.get('length')]) { lengthTouched = true; setLength(params.get('length')); }
 renderHistory();
-if (params.get('q')) startSearch(params.get('q'), currentEffort());
+
+
+// ---------- Reverse image search ----------
+
+$('img-upload').replaceChildren(...IMAGE_ENGINES.map(e => {
+  const a = document.createElement('a');
+  a.href = e.upload; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = e.label;
+  return a;
+}));
+
+$('image-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const links = reverseImageLinks($('img-url').value);
+  ui.renderLinks($('img-links'), links || []);
+  if (!links) $('img-url').setCustomValidity('Paste a full link starting with http:// or https://');
+});
+$('img-url').addEventListener('input', () => $('img-url').setCustomValidity(''));
+
+if (params.get('q')) startSearch(params.get('q'), currentEffort(), currentLength());

@@ -84,7 +84,7 @@ export function renderSources(container, results) {
 
 export function renderStats(container, stats, effortLabel) {
   const parts = [
-    `${effortLabel} effort`,
+    effortLabel,
     `${stats.seconds.toFixed(1)} s`,
     `${stats.sourcesOk}/${stats.tasks} sources answered`,
     `${stats.results} results`,
@@ -142,4 +142,21 @@ export async function copyText(text) {
     ta.remove();
     return ok;
   }
+}
+
+export function renderNotice(node, text) {
+  node.hidden = !text;
+  node.textContent = text || '';
+}
+
+export function renderQuick(node, quick) {
+  node.hidden = !quick;
+  node.replaceChildren();
+  if (quick) node.append(quick.text, citation(quick.ref));
+}
+
+export function renderLinks(container, links) {
+  container.replaceChildren(...links.map(l =>
+    el('a', { href: l.href, target: '_blank', rel: 'noopener noreferrer', textContent: l.label })));
+  container.hidden = !links.length;
 }

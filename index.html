@@ -33,11 +33,32 @@
       </fieldset>
       <p id="effort-desc" class="muted small"></p>
 
+      <fieldset class="effort" id="length-group">
+        <legend>Summary length</legend>
+        <label><input type="radio" name="length" value="short"><span>Short</span></label>
+        <label><input type="radio" name="length" value="medium" checked><span>Medium</span></label>
+        <label><input type="radio" name="length" value="long"><span>Long</span></label>
+      </fieldset>
+      <p id="length-desc" class="muted small"></p>
+
       <div class="row">
         <button type="submit" id="go">Search</button>
         <button type="button" id="stop" class="secondary" hidden>Stop</button>
       </div>
     </form>
+
+    <details class="card" id="image-search">
+      <summary><strong>Reverse image search</strong></summary>
+      <p class="muted small">Finds where an image appears online and what it shows. Paste a link to a picture, or open an engine and upload a photo from your phone.</p>
+      <form id="image-form">
+        <label for="img-url" class="sr-only">Image link</label>
+        <input id="img-url" type="url" placeholder="https://example.com/picture.jpg" inputmode="url">
+        <div id="img-links" class="chips" hidden></div>
+        <button type="submit" class="secondary">Make search links</button>
+      </form>
+      <p class="muted small">Photo on your phone? Open one of these and pick the photo there:</p>
+      <div id="img-upload" class="chips"></div>
+    </details>
 
     <section id="progress" hidden>
       <div class="bar"><div id="bar-fill"></div></div>
@@ -50,12 +71,14 @@
 
     <section id="results" hidden>
       <p id="stats" class="muted small"></p>
+      <p id="notice" class="notice" role="status" hidden></p>
 
       <article class="card">
         <div class="card-head">
           <h2>Summary</h2>
           <button type="button" class="link" data-copy="summary">Copy</button>
         </div>
+        <p id="quick" class="quick" hidden></p>
         <div id="summary" class="prose"></div>
       </article>
 
