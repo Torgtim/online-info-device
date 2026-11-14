@@ -174,3 +174,23 @@ footer { margin-top: 28px; border-top: 1px solid var(--line); padding-top: 12px;
 :target { scroll-margin-top: 16px; }
 .flash { animation: flash 1.2s ease; }
 @keyframes flash { from { background: rgba(31, 95, 214, 0.18); } to { background: transparent; } }
+
+/* ---------- Notices, quick answer, image search ---------- */
+
+.notice {
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin: 12px 0;
+}
+.quick { font-weight: 600; margin: 0 0 10px; }
+details.card summary { cursor: pointer; }
+#image-form { display: grid; gap: 8px; margin: 8px 0; }
+.chips a {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.875rem;
+  color: var(--fg);
+  text-decoration: none;
+}
